@@ -1,0 +1,17 @@
+[project]
+name = "test-program-please-ignore-3-middle-python-project-428"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Dmitry", email = "xequrt@yandex.ru" }
+]
+requires-python = ">=3.13"
+dependencies = []
+
+[project.scripts]
+test-program-please-ignore-3-middle-python-project-428 = "test_program_please_ignore_3_middle_python_project_428:main"
+
+[build-system]
+requires = ["uv_build>=0.12.5,<0.13.0"]
+build-backend = "uv_build"
