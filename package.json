@@ -1,0 +1,23 @@
+{
+  "name": "@hexlet/code",
+  "version": "1.0.0",
+  "description": "[![hexlet-check](https://github.com/Xequrt/test-program-please-ignore-3-middle-python-project-428/actions/workflows/hexlet-check.yml/badge.svg)](https://github.com/Xequrt/test-program-please-ignore-3-middle-python-project-428/actions)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Xequrt/test-program-please-ignore-3-middle-python-project-428.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Xequrt/test-program-please-ignore-3-middle-python-project-428/issues"
+  },
+  "homepage": "https://github.com/Xequrt/test-program-please-ignore-3-middle-python-project-428#readme",
+  "dependencies": {
+    "@hexlet/python-flight-booking-frontend": "^1.0.0"
+  }
+}
