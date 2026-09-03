@@ -1,7 +1,6 @@
 from pathlib import Path
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
-from fastapi.staticfiles import StaticFiles
 
 
 PUBLIC_DIR = Path(__file__).resolve().parent.parent / "public"
@@ -13,8 +12,6 @@ def create_app() -> FastAPI:
     def get_cities():
         return []
     
-    app.mount("/assets", StaticFiles(directory=PUBLIC_DIR / "assets"), name="static")
-
     @app.get("/{path:path}")
     def spa(path: str):
         file = (PUBLIC_DIR / path).resolve()
