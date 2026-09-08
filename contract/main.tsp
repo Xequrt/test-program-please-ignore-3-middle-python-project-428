@@ -81,3 +81,15 @@ interface Flights {
       origin: string, destination: string, date: string, passengers?: integer
     ): Flight[];
 }
+
+@route("/api/flights/{id}")
+interface FlightId {
+    @responses(
+      { statusCode: 200, type: Flight },
+      { statusCode: 404, type: ApiError }
+    )
+
+     @get find(
+       id: string
+     ): Flight;
+}
