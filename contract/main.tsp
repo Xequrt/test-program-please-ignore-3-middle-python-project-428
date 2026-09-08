@@ -11,11 +11,6 @@ model City {
   country?: string;
 }
 
-@route("/api/cities")
-interface Cities {
-  @get list(): City[];
-}
-
 model Money {
   amount: integer;
   currency: string;
@@ -69,4 +64,20 @@ model ApiError {
 @route("/api/health")
 interface Health {
   @get check(): { status: string };
+}
+
+@route("/api/cities")
+interface Cities {
+  @get list(): City[];
+}
+
+@route("/api/flights")
+interface Flights {
+    @responses(
+      { statusCode: 200, type: Flight[] },
+      { statusCode: 400, type: ApiError }
+    )
+    @get search(
+      origin: string, destination: string, date: string, passengers?: integer
+    ): Flight[];
 }
