@@ -61,6 +61,16 @@ model ApiError {
     message: string;
 }
 
+model CreateBookingRequest {
+    flightId: string;
+    passengers: Passenger[];
+    contact: Contact;
+}
+
+model CancelBookingRequest {
+    lastName: string;
+}
+
 @route("/api/health")
 interface Health {
   @get check(): { status: string };
@@ -92,4 +102,35 @@ interface FlightId {
      @get find(
        id: string
      ): Flight;
+}
+
+@route("/api/bookings")
+interface Bookings {
+    @responses(
+      { statusCode: 201, type: Booking },
+      { statusCode: 400, type: ApiError }
+    )
+
+    @post book(body: CreateBookingRequest): Booking
+}
+
+@route("/api/bookings/{code}")
+interface BookingCode {
+    @responses(
+      { statusCode: 200, type: Booking },
+      { statusCode: 403, type: ApiError },
+      { statusCode: 404, type: ApiError }
+    )
+
+    @get view(code: string, lastName: string): Booking
+}
+
+@route("/api/bookings/{code}/cancel")
+interface BookingCancel {
+    @responses(
+      { statusCode: 200, type: Booking },
+      { statusCode: 404, type: ApiError }
+    )
+
+    @post cancel(code: string, body: CancelBookingRequest): Booking
 }
