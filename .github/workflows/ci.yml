@@ -1,0 +1,39 @@
+name: ci-check
+
+on:
+  push:
+    branches:
+      - '**'
+    tags:
+      - '**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Python
+        uses: actions/setup-python@v5.1.0
+        with:
+          python-version: '3.13'
+
+      - name: Install Uv
+        uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4
+        with:
+          enable-cache: true
+
+      - name: Install Node.js
+        uses: actions/setup-node@v7.0.0
+        with:
+          cache: 'npm'
+
+      - name: Install
+        run: make install
+
+      - name: Build
+        run: make build
+
+      - name: Run tests
+        run: make test
