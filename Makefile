@@ -1,3 +1,5 @@
+.PHONY: install build start test
+
 install:
 	uv sync && npm ci
 

@@ -1,18 +1,33 @@
 from pathlib import Path
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
-
+from db import get_connection
 
 def create_app() -> FastAPI:
     app = FastAPI()
 
+    create_conn = get_connection()
+
     @app.get("/api/health")
     def get_health():
-        return {"status": "ok"}
+        try:
+            with create_conn.cursor() as cur:
+                cur.execute("SELECT 1")
+                return {"status": "ok", "db": "connected"}
+        except Exception as e:
+            return {"status": "error", "db": str(e)}
     
     @app.get("/api/cities")
     def get_cities():
-        return []
+        with create_conn.cursor() as cur:
+            cur.execute("SELECT code, name, country FROM cities ORDER BY name")
+            rows = cur.fetchall()
+            
+        cities = [
+            {"code": row[0], "name": row[1], "country": row[2]}
+            for row in rows
+        ]
+        return cities
     
     @app.get("/{path:path}")
     def spa(path: str):
