@@ -54,11 +54,8 @@ jobs:
       - name: Build
         run: make build
 
-      - name: Run migrations
-        run: uv run python init_db.py
-
-      - name: Seed data
-        run: uv run python seed.py
+      - name: Run migrations and seed data
+        run: make start
 
       - name: Run tests
         run: make test

@@ -5,6 +5,10 @@ build:
 	rm -rf public/assets public/index.html
 	cp -R node_modules/@hexlet/python-flight-booking-frontend/dist/. public/
 
+start-db:
+	uv run app/init_db.py
+	uv run app/seed_data.py
+
 start:
 	uv run app/init_db.py
 	uv run app/seed_data.py
