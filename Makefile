@@ -1,5 +1,3 @@
-.PHONY: install build start test
-
 install:
 	uv sync && npm ci
 
@@ -8,6 +6,8 @@ build:
 	cp -R node_modules/@hexlet/python-flight-booking-frontend/dist/. public/
 
 start:
+	uv run python app/init_db.py
+	uv run python app/seed_data.py
 	uv run uvicorn --factory app.main:create_app --host 0.0.0.0 --port $${PORT:-8080}
 
 test:

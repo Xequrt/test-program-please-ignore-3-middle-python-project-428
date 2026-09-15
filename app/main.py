@@ -1,7 +1,7 @@
 from pathlib import Path
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
-from db import get_connection
+from .db import get_connection
 
 def create_app() -> FastAPI:
     app = FastAPI()
@@ -20,7 +20,7 @@ def create_app() -> FastAPI:
     @app.get("/api/cities")
     def get_cities():
         with create_conn.cursor() as cur:
-            cur.execute("SELECT code, name, country FROM cities ORDER BY name")
+            cur.execute("SELECT code, name, country FROM cities")
             rows = cur.fetchall()
             
         cities = [
