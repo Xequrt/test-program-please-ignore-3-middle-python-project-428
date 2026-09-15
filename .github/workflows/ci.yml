@@ -55,7 +55,7 @@ jobs:
         run: make build
 
       - name: Run migrations and seed data
-        run: make start
+        run: make start-db
 
       - name: Run tests
         run: make test
