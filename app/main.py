@@ -10,12 +10,7 @@ def create_app() -> FastAPI:
 
     @app.get("/api/health")
     def get_health():
-        try:
-            with create_conn.cursor() as cur:
-                cur.execute("SELECT 1")
-                return {"status": "ok", "db": "connected"}
-        except Exception as e:
-            return {"status": "error", "db": str(e)}
+        return {"status": "ok"}
     
     @app.get("/api/cities")
     def get_cities():
