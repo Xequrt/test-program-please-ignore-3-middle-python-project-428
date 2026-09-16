@@ -1,6 +1,6 @@
 def serialize_flight(row):
     return {
-        "id": str(row["id"]),
+        "id": row["id"],
         "flightNumber": row["flightnumber"],
         "airline": {
             "code": row["al_code"],
@@ -16,8 +16,8 @@ def serialize_flight(row):
             "name": row["ac_name"],
             "country": row["ac_country"]
         },
-        "departureAt": _format_dt(row["departureat"]),
-        "arrivalAt": _format_dt(row["arrivalat"]),
+        "departureAt": row["departureat"],
+        "arrivalAt": row["arrivalat"],
         "durationMinutes": row["durationminutes"],
         "price": {
             "amount": row["price_amount"],
@@ -27,7 +27,3 @@ def serialize_flight(row):
     }
 
 
-def _format_dt(dt):
-    if dt is None:
-        return None
-    return dt.isoformat().replace("+00:00", "Z")

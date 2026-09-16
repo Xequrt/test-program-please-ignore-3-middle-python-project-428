@@ -1,5 +1,6 @@
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse
@@ -43,14 +44,20 @@ def create_app() -> FastAPI:
             })
 
         try:
-            datetime.strptime(date, "%Y-%m-%d")
+            moscow_tz = ZoneInfo("Europe/Moscow")
+            local_start = datetime.strptime(date, "%Y-%m-%d").replace(tzinfo=moscow_tz)
+            
+            local_end = local_start + timedelta(days=1)
+            
+            utc_start = local_start.astimezone(ZoneInfo("UTC"))
+            utc_end = local_end.astimezone(ZoneInfo("UTC"))
         except (ValueError, TypeError):
             return JSONResponse(status_code=400, content={
                 "code": "validation_error",
                 "message": "Invalid date format, expected YYYY-MM-DD"
             })
 
-        rows = get_flights(conn, origin, destination, date, passengers)
+        rows = get_flights(conn, origin, destination,  utc_start, utc_end, passengers)
         
         return [serialize_flight(row) for row in rows]
 

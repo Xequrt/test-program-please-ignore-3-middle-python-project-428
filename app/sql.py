@@ -1,7 +1,7 @@
 from psycopg.rows import dict_row
 
 
-def get_flights(conn, origin, destination, date, passengers):
+def get_flights(conn, origin, destination, start_utc, end_utc, passengers):
     sql = """
         SELECT 
             f.id,
@@ -25,11 +25,12 @@ def get_flights(conn, origin, destination, date, passengers):
         JOIN aviacompany al ON f.aviacompany = al.code
         WHERE f.departure_city = %s
           AND f.arrival_city = %s
-          AND f.departureat::date = %s
+          AND f.departureat >= %s 
+          AND f.departureat < %s
           AND f.seatsavailable >= %s
     """
     with conn.cursor(row_factory=dict_row) as cur:
-        cur.execute(sql, (origin, destination, date, passengers))
+        cur.execute(sql, (origin, destination, start_utc, end_utc, passengers))
         return cur.fetchall()
 
 

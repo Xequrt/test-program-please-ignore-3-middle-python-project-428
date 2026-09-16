@@ -1,5 +1,6 @@
 from db import get_connection
-from datetime import time, timedelta, datetime, timezone
+from datetime import time, timedelta, datetime
+from zoneinfo import ZoneInfo
 
 CITIES = [
     ("MOW", "Москва", "Россия"),
@@ -22,6 +23,8 @@ DEPARTURE_HOURS = [8, 18]
 
 CITY_CODES = [c[0] for c in CITIES]
 AIRLINE_CODES = [a[0] for a in AIRLINES]
+
+MOSCOW = ZoneInfo("Europe/Moscow")
 
 def seed_cities_and_airlines():
     conn = get_connection()
@@ -51,7 +54,7 @@ def seed_flights():
     conn = get_connection()
     try:
         with conn.cursor() as cur:
-            today = datetime.now(timezone.utc).date()
+            today = datetime.now(MOSCOW).date()
             rows = []
             count = 0
 
@@ -68,7 +71,7 @@ def seed_flights():
                             departure_at = datetime.combine(
                                 current_date,
                                 time(dep_hour, 0),
-                                tzinfo=timezone.utc
+                                tzinfo=MOSCOW
                             )
                             duration_minutes = 120
                             arrival_at = departure_at + timedelta(minutes=duration_minutes)
