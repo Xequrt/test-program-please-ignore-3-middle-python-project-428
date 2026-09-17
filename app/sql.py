@@ -61,3 +61,25 @@ def get_flight_by_id(conn, flight_id):
     with conn.cursor(row_factory=dict_row) as cur:
         cur.execute(sql, (flight_id,))
         return cur.fetchone()
+
+
+def create_booking(conn, flight_id, code, total_price, contact, passengers, status, createdAt):
+    sql_booking = """
+        INSERT INTO bookings (flight_id, code, status, totalPrice, createdAt, email, phone)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
+        RETURNING id
+    """
+
+    sql_booking_passengers = """
+        INSERT INTO passengers (booking_id, firstName, lastName, birthday, passportNumber)
+        VALUES (%s, %s, %s, %s, %s)
+    """
+
+    with conn.cursor(row_factory=dict_row) as cur:
+        cur.execute(sql_booking, (flight_id, code, status, total_price, createdAt, contact.email, contact.phone))
+        booking_id = cur.fetchone()["id"]
+
+        cur.executemany(sql_booking_passengers, [(booking_id, p.firstName, p.lastName, p.dateOfBirth, p.documentNumber) for p in passengers])
+
+    conn.commit()
+    return booking_id

@@ -1,14 +1,35 @@
 from pathlib import Path
-from datetime import datetime, timedelta
+from datetime import timezone, datetime, timedelta
 from zoneinfo import ZoneInfo
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse
+import random, string
+from pydantic import BaseModel
+from psycopg.errors import UniqueViolation
 
 from .db import get_connection
-from .sql import get_flights, get_flight_by_id
-from .serializers import serialize_flight
+from .sql import get_flights, get_flight_by_id, create_booking
+from .serializers import serialize_flight, serialize_booking
 
+class ContactRequest(BaseModel):
+    email: str
+    phone: str
+
+class PassengerRequest(BaseModel):
+    firstName: str
+    lastName: str
+    dateOfBirth: str
+    documentNumber: str
+
+class CreateBookingRequest(BaseModel):
+    flightId: str
+    contact: ContactRequest
+    passengers: list[PassengerRequest]
+
+def generate_booking_code():
+    alphabet = string.ascii_uppercase + string.digits
+    return "".join(random.choices(alphabet, k=6))
 
 def create_app() -> FastAPI:
     app = FastAPI()
@@ -16,6 +37,7 @@ def create_app() -> FastAPI:
 
     @app.exception_handler(RequestValidationError)
     def validation_exception_handler(request, exc):
+        print(exc.errors())
         return JSONResponse(
             status_code=400,
             content={"code": "validation_error", "message": "Invalid request parameters"}
@@ -80,6 +102,33 @@ def create_app() -> FastAPI:
             })
 
         return serialize_flight(row)
+
+    @app.post("/api/bookings")
+    def book(request: CreateBookingRequest):
+        if not request.passengers:
+                    return JSONResponse(status_code=400, content={
+                        "code": "validation_error",
+                        "message": "passengers must be at least 1"
+                    })
+        row = get_flight_by_id(conn, request.flightId)
+        if row is None:
+            return JSONResponse(status_code=400, content={
+                        "code": "not_found",
+                        "message": f"Flight with id {request.flightId} not found"
+                    })
+        total_price = row["price_amount"] * len(request.passengers)
+        while True:
+            booking_code = generate_booking_code()
+            status = "confirmed"
+            createdAt = datetime.now(timezone.utc)
+            try:
+                create_booking(conn, request.flightId, booking_code, total_price, request.contact, request.passengers, status, createdAt)
+                break
+            except UniqueViolation:
+                continue
+        return JSONResponse(status_code=201, content=serialize_booking(booking_code, status, row, request.passengers, request.contact, total_price, createdAt))
+
+
 
     @app.get("/{path:path}")
     def spa(path: str):

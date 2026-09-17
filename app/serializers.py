@@ -16,8 +16,8 @@ def serialize_flight(row):
             "name": row["ac_name"],
             "country": row["ac_country"]
         },
-        "departureAt": row["departureat"],
-        "arrivalAt": row["arrivalat"],
+        "departureAt": row["departureat"].strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "arrivalAt":   row["arrivalat"].strftime("%Y-%m-%dT%H:%M:%SZ"),
         "durationMinutes": row["durationminutes"],
         "price": {
             "amount": row["price_amount"],
@@ -26,4 +26,18 @@ def serialize_flight(row):
         "seatsAvailable": row["seatsavailable"]
     }
 
+def serialize_booking(booking_code, status, flight_row, passengers, contact, total_price, created_at):
+    return {
+        "code": booking_code,
+        "status": status,
+        "flight": serialize_flight(flight_row),
+        "passengers": [p.model_dump() for p in passengers],
+        "contact": contact.model_dump(),
+        "totalPrice": {
+            "amount": total_price,
+            "currency": "RUB"
+        },
+        "createdAt": created_at.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    }
 
