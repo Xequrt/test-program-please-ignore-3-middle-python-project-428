@@ -28,7 +28,7 @@ class CreateBookingRequest(BaseModel):
     passengers: list[PassengerRequest]
 
 def generate_booking_code():
-    alphabet = string.ascii_uppercase + string.digits
+    alphabet = "".join(c for c in string.ascii_uppercase + string.digits if c not in "0O1I")
     return "".join(random.choices(alphabet, k=6))
 
 def create_app() -> FastAPI:
