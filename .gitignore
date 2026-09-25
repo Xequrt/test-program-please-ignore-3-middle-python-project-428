@@ -130,7 +130,6 @@ venv.bak/
 
 # Node.js
 node_modules/
-package-lock.json
 
 # TypeSpec generated
 contract/tsp-output/
