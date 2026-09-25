@@ -69,3 +69,130 @@ def test_flight_by_id_not_a_number():
     r = client.get("/api/flights/NOPE")
     assert r.status_code == 404
     assert r.json()["code"] == "not_found"
+
+
+def test_create_booking_success():
+    r = client.post("/api/bookings", json={
+        "flightId": "1",
+        "contact": {
+            "email": "test@example.com",
+            "phone": "+79991234567"
+        },
+        "passengers": [
+            {
+                "firstName": "Иван",
+                "lastName": "Петров",
+                "dateOfBirth": "1990-05-20",
+                "documentNumber": "4509 123456"
+            }
+        ]
+    })
+    assert r.status_code == 201
+    data = r.json()
+    assert "code" in data
+    assert len(data["code"]) == 6
+    assert data["status"] == "confirmed"
+    assert "totalPrice" in data
+    assert data["totalPrice"]["currency"] == "RUB"
+    assert "createdAt" in data
+    assert len(data["passengers"]) == 1
+
+
+def test_create_booking_two_passengers():
+    flight_r = client.get("/api/flights/1")
+    assert flight_r.status_code == 200
+    flight = flight_r.json()
+    single_price = flight["price"]["amount"]
+    
+    r = client.post("/api/bookings", json={
+        "flightId": "1",
+        "contact": {
+            "email": "test@example.com",
+            "phone": "+79991234567"
+        },
+        "passengers": [
+            {
+                "firstName": "Иван",
+                "lastName": "Петров",
+                "dateOfBirth": "1990-05-20",
+                "documentNumber": "1"
+            },
+            {
+                "firstName": "Мария",
+                "lastName": "Петрова",
+                "dateOfBirth": "1992-03-15",
+                "documentNumber": "2"
+            }
+        ]
+    })
+    assert r.status_code == 201
+    data = r.json()
+    assert data["totalPrice"]["amount"] == single_price * 2
+    assert len(data["passengers"]) == 2
+
+
+def test_create_booking_empty_passengers():
+    r = client.post("/api/bookings", json={
+        "flightId": "1",
+        "contact": {
+            "email": "test@example.com",
+            "phone": "+79991234567"
+        },
+        "passengers": []
+    })
+    assert r.status_code == 400
+    data = r.json()
+    assert data["code"] == "validation_error"
+
+
+def test_create_booking_missing_field():
+    r = client.post("/api/bookings", json={
+        "flightId": "1",
+        "contact": {
+            "email": "test@example.com",
+            "phone": "+79991234567"
+        }
+    })
+    assert r.status_code == 400
+    data = r.json()
+    assert data["code"] == "validation_error"
+
+
+def test_create_booking_unknown_flight():
+    r = client.post("/api/bookings", json={
+        "flightId": "999999",
+        "contact": {
+            "email": "test@example.com",
+            "phone": "+79991234567"
+        },
+        "passengers": [
+            {
+                "firstName": "Иван",
+                "lastName": "Петров",
+                "dateOfBirth": "1990-05-20",
+                "documentNumber": "1"
+            }
+        ]
+    })
+    assert r.status_code == 400
+    data = r.json()
+    assert data["code"] == "not_found"
+
+
+def test_create_booking_minimal_document():
+    r = client.post("/api/bookings", json={
+        "flightId": "1",
+        "contact": {
+            "email": "a@b.c",
+            "phone": "1"
+        },
+        "passengers": [
+            {
+                "firstName": "A",
+                "lastName": "B",
+                "dateOfBirth": "2000-01-01",
+                "documentNumber": "1"
+            }
+        ]
+    })
+    assert r.status_code == 201
