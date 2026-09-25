@@ -209,10 +209,8 @@ def create_app() -> FastAPI:
                 "message": "Booking is not found"
             })
         
-        # Отменяем бронь
         cancel_booking(conn, details["booking"]["id"])
         
-        # Получаем обновлённую бронь
         details = get_booking_with_details(conn, code, request.lastName)
         
         return serialize_booking(
