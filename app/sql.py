@@ -83,3 +83,34 @@ def create_booking(conn, flight_id, code, total_price, contact, passengers, stat
 
     conn.commit()
     return booking_id
+
+
+def get_booking_by_code_and_lastname(conn, code, lastName):
+    sql = """
+    SELECT bookings.*, flight_id
+    FROM bookings
+    JOIN passengers ON passengers.booking_id = bookings.id
+    WHERE bookings.code = %s 
+    AND LOWER(TRIM(passengers.lastName)) = LOWER(TRIM(%s))
+    LIMIT 1
+    """
+
+    with conn.cursor(row_factory=dict_row) as cur:
+        cur.execute(sql, (code, lastName))
+        return cur.fetchone()
+
+
+def get_passengers_by_booking_id(conn, booking_id):
+    sql = "SELECT * FROM passengers WHERE booking_id = %s"
+
+    with conn.cursor(row_factory=dict_row) as cur:
+        cur.execute(sql, (booking_id,))
+        return cur.fetchall()
+
+
+def cancel_booking(conn, booking_id):
+    sql = "UPDATE bookings SET status = 'cancelled' WHERE id = %s "
+
+    with conn.cursor(row_factory=dict_row) as cur:
+        cur.execute(sql, (booking_id,))
+    conn.commit()

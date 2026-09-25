@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from psycopg.errors import UniqueViolation
 
 from .db import get_connection
-from .sql import get_flights, get_flight_by_id, create_booking
+from .sql import get_flights, get_flight_by_id, create_booking, get_booking_by_code_and_lastname, get_passengers_by_booking_id, cancel_booking
 from .serializers import serialize_flight, serialize_booking
 
 class ContactRequest(BaseModel):
@@ -27,9 +27,42 @@ class CreateBookingRequest(BaseModel):
     contact: ContactRequest
     passengers: list[PassengerRequest]
 
+class CancelBookingRequest(BaseModel):
+    lastName: str
+
 def generate_booking_code():
     alphabet = "".join(c for c in string.ascii_uppercase + string.digits if c not in "0O1I")
     return "".join(random.choices(alphabet, k=6))
+
+def get_booking_with_details(conn, code: str, lastName: str):
+    booking = get_booking_by_code_and_lastname(conn, code, lastName)
+    
+    if booking is None:
+        return None
+    
+    flight_row = get_flight_by_id(conn, booking["flight_id"])
+    passengers_rows = get_passengers_by_booking_id(conn, booking["id"])
+    
+    passengers = [
+        PassengerRequest(
+            firstName=p["firstname"],
+            lastName=p["lastname"],
+            dateOfBirth=p["birthday"].strftime("%Y-%m-%d"),
+            documentNumber=p["passportnumber"]
+        ) for p in passengers_rows
+    ]
+    
+    contact = ContactRequest(
+        email=booking["email"],
+        phone=booking["phone"]
+    )
+    
+    return {
+        "booking": booking,
+        "flight_row": flight_row,
+        "passengers": passengers,
+        "contact": contact
+    }
 
 def create_app() -> FastAPI:
     app = FastAPI()
@@ -128,6 +161,69 @@ def create_app() -> FastAPI:
                 continue
         return JSONResponse(status_code=201, content=serialize_booking(booking_code, status, row, request.passengers, request.contact, total_price, createdAt))
 
+
+    @app.get("/api/bookings/{code}")
+    def get_booking(code: str, lastName: str = None):
+        if not lastName:
+            return JSONResponse(status_code=404, content={
+                'code': 'not_found',
+                'message': 'Booking is not found'
+            })
+        
+        code = code.upper()
+        
+        details = get_booking_with_details(conn, code, lastName)
+        
+        if details is None:
+            return JSONResponse(status_code=404, content={
+                "code": "not_found",
+                "message": "Booking is not found"
+            })
+        
+        return serialize_booking(
+            details["booking"]["code"],
+            details["booking"]["status"],
+            details["flight_row"],
+            details["passengers"],
+            details["contact"],
+            details["booking"]["totalprice"],
+            details["booking"]["createdat"]
+        )
+
+
+    @app.post("/api/bookings/{code}/cancel")
+    def cancel_booking_endpoint(code: str, request: CancelBookingRequest):
+        if not request.lastName:
+            return JSONResponse(status_code=404, content={
+                "code": "not_found",
+                "message": "Booking is not found"
+            })
+        
+        code = code.upper()
+        
+        details = get_booking_with_details(conn, code, request.lastName)
+        
+        if details is None:
+            return JSONResponse(status_code=404, content={
+                "code": "not_found",
+                "message": "Booking is not found"
+            })
+        
+        # Отменяем бронь
+        cancel_booking(conn, details["booking"]["id"])
+        
+        # Получаем обновлённую бронь
+        details = get_booking_with_details(conn, code, request.lastName)
+        
+        return serialize_booking(
+            details["booking"]["code"],
+            details["booking"]["status"],
+            details["flight_row"],
+            details["passengers"],
+            details["contact"],
+            details["booking"]["totalprice"],
+            details["booking"]["createdat"]
+        )
 
 
     @app.get("/{path:path}")
