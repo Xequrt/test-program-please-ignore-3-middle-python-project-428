@@ -1,16 +1,26 @@
+import random
+import string
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from datetime import timezone, datetime, timedelta
 from zoneinfo import ZoneInfo
+
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse
-import random, string
-from pydantic import BaseModel
 from psycopg.errors import UniqueViolation
+from pydantic import BaseModel
 
 from .db import get_connection
-from .sql import get_flights, get_flight_by_id, create_booking, get_booking_by_code_and_lastname, get_passengers_by_booking_id, cancel_booking
-from .serializers import serialize_flight, serialize_booking
+from .serializers import serialize_booking, serialize_flight
+from .sql import (
+    cancel_booking,
+    create_booking,
+    get_booking_by_code_and_lastname,
+    get_flight_by_id,
+    get_flights,
+    get_passengers_by_booking_id,
+)
+
 
 class ContactRequest(BaseModel):
     email: str
@@ -153,7 +163,7 @@ def create_app() -> FastAPI:
         while True:
             booking_code = generate_booking_code()
             status = "confirmed"
-            createdAt = datetime.now(timezone.utc)
+            createdAt = datetime.now(UTC)
             try:
                 create_booking(conn, request.flightId, booking_code, total_price, request.contact, request.passengers, status, createdAt)
                 break
@@ -163,7 +173,7 @@ def create_app() -> FastAPI:
 
 
     @app.get("/api/bookings/{code}")
-    def get_booking(code: str, lastName: str = None):
+    def get_booking(code: str, lastName: str | None = None):
         if not lastName:
             return JSONResponse(status_code=404, content={
                 'code': 'not_found',

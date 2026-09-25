@@ -1,4 +1,5 @@
 from db import get_connection
+from psycopg.errors import Error
 
 CREATE_TABLES = """
 CREATE TABLE IF NOT EXISTS cities (
@@ -56,7 +57,7 @@ if __name__ == "__main__":
 
         conn.commit()
         print('Схема БД создана')
-    except Exception as e:
+    except Error as e:
         print(f"Ошибка при создании схемы БД: {e}")
         conn.rollback()
     finally:

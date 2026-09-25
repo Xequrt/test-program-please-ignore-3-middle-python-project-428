@@ -1,4 +1,4 @@
-.PHONY: install build contract start-db start test
+.PHONY: install build contract start-db start test lint
 
 install:
 	uv sync && npm ci
@@ -21,3 +21,6 @@ start:
 
 test:
 	uv run python -m pytest
+
+lint:
+	uv run ruff check && uv run mypy .

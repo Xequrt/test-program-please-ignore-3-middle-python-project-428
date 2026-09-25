@@ -1,6 +1,8 @@
-from db import get_connection
-from datetime import time, timedelta, datetime
+from datetime import datetime, time, timedelta
 from zoneinfo import ZoneInfo
+
+from db import get_connection
+from psycopg.errors import Error
 
 CITIES = [
     ("MOW", "Москва", "Россия"),
@@ -44,7 +46,7 @@ def seed_cities_and_airlines():
         
         conn.commit()
         print("Города и авиакомпании загружены")
-    except Exception as e:
+    except Error as e:
         conn.rollback()
         print(f"Ошибка при загрузке городов и авиакомпаний: {e}")
     finally:
@@ -100,7 +102,7 @@ def seed_flights():
             )
         conn.commit()
         print(f"Сгенерировано {count} рейсов")
-    except Exception as e:
+    except Error as e:
         conn.rollback()
         print(f"Ошибка: {e}")
     finally:
