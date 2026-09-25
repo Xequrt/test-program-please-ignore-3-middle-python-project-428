@@ -1,0 +1,51 @@
+# Git
+.git
+.gitignore
+
+# Dependencies
+node_modules
+.venv
+__pycache__
+
+# Caches and build artifacts
+.pytest_cache
+.ruff_cache
+*.pyc
+*.pyo
+*.egg-info
+dist/
+build/
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Environment files
+.env
+.env.local
+
+# Test and coverage
+htmlcov/
+.coverage
+.tox/
+.hypothesis/
+
+# Logs and databases
+*.log
+*.sqlite3
+tmp/
+
+# Documentation
+README.md
+*.md
+
+# CI/CD
+.github/
+
+# Собранную статику кладёт стадия frontend. Без этих строк рядом с ней окажутся файлы от
+# локальной сборки — с другими хешами в именах, то есть мусор.
+public/assets
+public/index.html
