@@ -183,7 +183,7 @@ GitHub Actions автоматически запускает тесты на к�
 
 ## Деплой
 
-Приложение развёрнуто на Render: https://test-program-please-ignore-3-middle-2wad.onrender.com
+Приложение развёрнуто на Render: https://test-program-please-ignore-3-middle-42zq.onrender.com/
 
 ---
 
