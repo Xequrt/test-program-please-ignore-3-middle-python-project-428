@@ -83,54 +83,69 @@ interface Cities {
 
 @route("/api/flights")
 interface Flights {
-    @responses(
-      { statusCode: 200, type: Flight[] },
-      { statusCode: 400, type: ApiError }
-    )
     @get search(
-      origin: string, destination: string, date: string, passengers?: integer
-    ): Flight[];
+      origin: string, 
+      destination: string, 
+      date: string, 
+      passengers?: integer
+    ): {
+      @statusCode statusCode: 200;
+      body: Flight[];
+    } | {
+      @statusCode statusCode: 400;
+      body: ApiError;
+    };
 }
 
 @route("/api/flights/{id}")
 interface FlightId {
-    @responses(
-      { statusCode: 200, type: Flight },
-      { statusCode: 404, type: ApiError }
-    )
-
-     @get find(
-       id: string
-     ): Flight;
+    @get find(id: string): {
+        @statusCode statusCode: 200;
+        body: Flight;
+    } | {
+        @statusCode statusCode: 404;
+        body: ApiError;
+    };
 }
 
 @route("/api/bookings")
 interface Bookings {
-    @responses(
-      { statusCode: 201, type: Booking },
-      { statusCode: 400, type: ApiError }
-    )
-
-    @post book(body: CreateBookingRequest): Booking
+    @post book(body: CreateBookingRequest): {
+        @statusCode statusCode: 201;
+        body: Booking;
+    } | {
+        @statusCode statusCode: 400;
+        body: ApiError;
+    };
 }
 
 @route("/api/bookings/{code}")
 interface BookingCode {
-    @responses(
-      { statusCode: 200, type: Booking },
-      { statusCode: 403, type: ApiError },
-      { statusCode: 404, type: ApiError }
-    )
-
-    @get view(code: string, lastName: string): Booking
+    @get view(
+      code: string, 
+      lastName: string
+      ): {
+        @statusCode statusCode: 200;
+        body: Booking;
+    } | {
+        @statusCode statusCode: 403;
+        body: ApiError;
+    } | {
+        @statusCode statusCode: 404;
+        body: ApiError;
+    };
 }
 
 @route("/api/bookings/{code}/cancel")
 interface BookingCancel {
-    @responses(
-      { statusCode: 200, type: Booking },
-      { statusCode: 404, type: ApiError }
-    )
-
-    @post cancel(code: string, body: CancelBookingRequest): Booking
+    @post cancel(
+      code: string, 
+      body: CancelBookingRequest
+      ): {
+        @statusCode statusCode: 200;
+        body: Booking;
+    } | {
+        @statusCode statusCode: 404;
+        body: ApiError;
+    };
 }

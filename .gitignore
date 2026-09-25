@@ -133,7 +133,6 @@ node_modules/
 package-lock.json
 
 # TypeSpec generated
-contract/openapi.yaml
 contract/tsp-output/
 
 # Spyder project settings

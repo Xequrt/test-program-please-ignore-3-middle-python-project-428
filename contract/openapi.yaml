@@ -1,0 +1,403 @@
+openapi: 3.0.0
+info:
+  title: Flight Booking API
+  version: 0.0.0
+tags: []
+paths:
+  /api/bookings:
+    post:
+      operationId: Bookings_book
+      parameters: []
+      responses:
+        '201':
+          description: The request has succeeded and a new resource has been created as a result.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  body:
+                    $ref: '#/components/schemas/Booking'
+                required:
+                  - body
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  body:
+                    $ref: '#/components/schemas/ApiError'
+                required:
+                  - body
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                body:
+                  $ref: '#/components/schemas/CreateBookingRequest'
+              required:
+                - body
+  /api/bookings/{code}:
+    get:
+      operationId: BookingCode_view
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  body:
+                    $ref: '#/components/schemas/Booking'
+                required:
+                  - body
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  body:
+                    $ref: '#/components/schemas/ApiError'
+                required:
+                  - body
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  body:
+                    $ref: '#/components/schemas/ApiError'
+                required:
+                  - body
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                lastName:
+                  type: string
+              required:
+                - lastName
+  /api/bookings/{code}/cancel:
+    post:
+      operationId: BookingCancel_cancel
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  body:
+                    $ref: '#/components/schemas/Booking'
+                required:
+                  - body
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  body:
+                    $ref: '#/components/schemas/ApiError'
+                required:
+                  - body
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                body:
+                  $ref: '#/components/schemas/CancelBookingRequest'
+              required:
+                - body
+  /api/cities:
+    get:
+      operationId: Cities_list
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/City'
+  /api/flights:
+    get:
+      operationId: Flights_search
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  body:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Flight'
+                required:
+                  - body
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  body:
+                    $ref: '#/components/schemas/ApiError'
+                required:
+                  - body
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                origin:
+                  type: string
+                destination:
+                  type: string
+                date:
+                  type: string
+                passengers:
+                  type: integer
+              required:
+                - origin
+                - destination
+                - date
+  /api/flights/{id}:
+    get:
+      operationId: FlightId_find
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  body:
+                    $ref: '#/components/schemas/Flight'
+                required:
+                  - body
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  body:
+                    $ref: '#/components/schemas/ApiError'
+                required:
+                  - body
+  /api/health:
+    get:
+      operationId: Health_check
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                required:
+                  - status
+components:
+  schemas:
+    Airline:
+      type: object
+      required:
+        - code
+        - name
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+    ApiError:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+    Booking:
+      type: object
+      required:
+        - code
+        - status
+        - flight
+        - passengers
+        - contact
+        - totalPrice
+        - createdAt
+      properties:
+        code:
+          type: string
+        status:
+          type: string
+        flight:
+          $ref: '#/components/schemas/Flight'
+        passengers:
+          type: array
+          items:
+            $ref: '#/components/schemas/Passenger'
+        contact:
+          $ref: '#/components/schemas/Contact'
+        totalPrice:
+          $ref: '#/components/schemas/Money'
+        createdAt:
+          type: string
+    CancelBookingRequest:
+      type: object
+      required:
+        - lastName
+      properties:
+        lastName:
+          type: string
+    City:
+      type: object
+      required:
+        - code
+        - name
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        country:
+          type: string
+    Contact:
+      type: object
+      required:
+        - email
+        - phone
+      properties:
+        email:
+          type: string
+        phone:
+          type: string
+    CreateBookingRequest:
+      type: object
+      required:
+        - flightId
+        - passengers
+        - contact
+      properties:
+        flightId:
+          type: string
+        passengers:
+          type: array
+          items:
+            $ref: '#/components/schemas/Passenger'
+        contact:
+          $ref: '#/components/schemas/Contact'
+    Flight:
+      type: object
+      required:
+        - id
+        - flightNumber
+        - airline
+        - origin
+        - destination
+        - departureAt
+        - arrivalAt
+        - durationMinutes
+        - price
+        - seatsAvailable
+      properties:
+        id:
+          type: string
+        flightNumber:
+          type: string
+        airline:
+          $ref: '#/components/schemas/Airline'
+        origin:
+          $ref: '#/components/schemas/City'
+        destination:
+          $ref: '#/components/schemas/City'
+        departureAt:
+          type: string
+        arrivalAt:
+          type: string
+        durationMinutes:
+          type: integer
+        price:
+          $ref: '#/components/schemas/Money'
+        seatsAvailable:
+          type: integer
+    Money:
+      type: object
+      required:
+        - amount
+        - currency
+      properties:
+        amount:
+          type: integer
+        currency:
+          type: string
+    Passenger:
+      type: object
+      required:
+        - firstName
+        - lastName
+        - dateOfBirth
+        - documentNumber
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        dateOfBirth:
+          type: string
+        documentNumber:
+          type: string
