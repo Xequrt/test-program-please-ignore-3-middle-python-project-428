@@ -25,7 +25,7 @@ REST API сервиса бронирования авиабилетов с по�
 - **Server:** Uvicorn
 - **Testing:** pytest
 - **CI/CD:** GitHub Actions
-- **Deploy:** Render
+- **Deploy:** Render (Docker)
 - **Package Manager:** uv
 
 ## Установка
@@ -67,6 +67,24 @@ make start
 ```
 
 Приложение будет доступно по адресу: http://localhost:8080
+
+### Тестирование Docker образа
+
+Перед деплоем можно проверить Docker образ локально:
+
+```bash
+# Собрать образ
+docker build -t flight-booking .
+
+# Запустить контейнер
+docker run --rm \
+  -e PORT=8080 \
+  -e DATABASE_URL=postgresql://user:pass@host/db \
+  -p 8080:8080 \
+  flight-booking
+```
+
+Приложение откроется на http://localhost:8080
 
 ## Использование
 
