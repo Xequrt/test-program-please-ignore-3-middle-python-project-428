@@ -12,6 +12,7 @@ dependencies = [
     "psycopg[binary]>=3.3.5",
     "python-dotenv>=1.2.3",
     "uvicorn>=0.52.4",
+    "yoyo-migrations>=9.0.0",
 ]
 
 [dependency-groups]

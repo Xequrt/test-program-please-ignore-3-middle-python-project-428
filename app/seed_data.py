@@ -49,6 +49,7 @@ def seed_cities_and_airlines():
     except Error as e:
         conn.rollback()
         print(f"Ошибка при загрузке городов и авиакомпаний: {e}")
+        raise
     finally:
         conn.close()
 
@@ -105,6 +106,7 @@ def seed_flights():
     except Error as e:
         conn.rollback()
         print(f"Ошибка: {e}")
+        raise
     finally:
         conn.close()
 if __name__ == "__main__":
