@@ -86,11 +86,11 @@ def create_app() -> FastAPI:
             content={"code": "validation_error", "message": "Invalid request parameters"}
         )
 
-    @app.get("/api/health")
+    @app.api_route("/api/health", methods=["GET", "HEAD"]) 
     def get_health():
         return {"status": "ok"}
 
-    @app.get("/api/cities")
+    @app.api_route("/api/cities", methods=["GET", "HEAD"])
     def get_cities():
         with conn.cursor() as cur:
             cur.execute("SELECT code, name, country FROM cities")
@@ -100,7 +100,7 @@ def create_app() -> FastAPI:
             for row in rows
         ]
 
-    @app.get("/api/flights")
+    @app.api_route("/api/flights", methods=["GET", "HEAD"])
     def flights_search(origin: str, destination: str, date: str, passengers: int = 1):
         if passengers < 1:
             return JSONResponse(status_code=400, content={
@@ -126,7 +126,7 @@ def create_app() -> FastAPI:
         
         return [serialize_flight(row) for row in rows]
 
-    @app.get("/api/flights/{flight_id}")
+    @app.api_route("/api/flights/{flight_id}", methods=["GET", "HEAD"])
     def flight_by_id(flight_id: str):
         try:
             flight_id_int = int(flight_id)
@@ -172,7 +172,7 @@ def create_app() -> FastAPI:
         return JSONResponse(status_code=201, content=serialize_booking(booking_code, status, row, request.passengers, request.contact, total_price, createdAt))
 
 
-    @app.get("/api/bookings/{code}")
+    @app.api_route("/api/bookings/{code}", methods=["GET", "HEAD"])
     def get_booking(code: str, lastName: str | None = None):
         if not lastName:
             return JSONResponse(status_code=404, content={
@@ -236,6 +236,12 @@ def create_app() -> FastAPI:
 
     @app.get("/{path:path}")
     def spa(path: str):
+        if path.startswith("api/"):
+            return JSONResponse(
+                status_code=404,
+                content={"code": "not_found", "message": "Resource is not found"}
+            )
+
         PUBLIC_DIR = Path(__file__).resolve().parent.parent / "public"
         file = (PUBLIC_DIR / path).resolve()
         if path and file.is_relative_to(PUBLIC_DIR) and file.is_file():
