@@ -90,8 +90,14 @@ def seed_flights():
                             )
                             duration_minutes = 120
                             arrival_at = departure_at + timedelta(minutes=duration_minutes)
+                            
+                            from_idx = CITY_CODES.index(from_city)
+                            to_idx = CITY_CODES.index(to_city)
+                            route_number = from_idx * len(CITY_CODES) + to_idx
+                            flight_suffix = route_number * 10 + i
+                            
                             airline_code = AIRLINE_CODES[count % len(AIRLINE_CODES)]
-                            flight_number = f"{airline_code}{1000 + count}"
+                            flight_number = f"{airline_code}{1000 + flight_suffix}"
                             price_amount = 3000 + (count % 5500)
                             seats_available = 30 + (count % 61)
 
