@@ -9,6 +9,7 @@ authors = [
 requires-python = ">=3.13"
 dependencies = [
     "fastapi>=0.141.1",
+    "psycopg2-binary>=2.9.13",
     "psycopg[binary]>=3.3.5",
     "python-dotenv>=1.2.3",
     "uvicorn>=0.52.4",
