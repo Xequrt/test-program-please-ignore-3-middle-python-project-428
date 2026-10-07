@@ -2,11 +2,13 @@ import random
 import string
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from typing import Annotated
 from zoneinfo import ZoneInfo
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse
+from psycopg import Connection
 from psycopg.errors import UniqueViolation
 from pydantic import BaseModel, field_validator
 
@@ -20,6 +22,14 @@ from .sql import (
     get_flights,
     get_passengers_by_booking_id,
 )
+
+
+def get_db():
+    with get_connection() as conn:
+        yield conn
+
+
+DbConnection = Annotated[Connection, Depends(get_db)]
 
 
 class ContactRequest(BaseModel):
@@ -36,7 +46,7 @@ class PassengerRequest(BaseModel):
     @classmethod
     def validate_date_of_birth(cls, v: str) -> str:
         try:
-            datetime.strptime(v, '%Y-%m-%d')
+            datetime.strptime(v, '%Y-%m-%d')  # noqa: DTZ007
         except ValueError:
             raise ValueError('Invalid date format, expected YYYY-MM-DD')
         return v
@@ -85,7 +95,6 @@ def get_booking_with_details(conn, code: str, lastName: str):
 
 def create_app() -> FastAPI:
     app = FastAPI()
-    conn = get_connection()
 
     @app.exception_handler(RequestValidationError)
     def validation_exception_handler(request, exc):
@@ -100,7 +109,7 @@ def create_app() -> FastAPI:
         return {"status": "ok"}
 
     @app.api_route("/api/cities", methods=["GET", "HEAD"])
-    def get_cities():
+    def get_cities(conn: DbConnection):
         with conn.cursor() as cur:
             cur.execute("SELECT code, name, country FROM cities")
             rows = cur.fetchall()
@@ -110,7 +119,7 @@ def create_app() -> FastAPI:
         ]
 
     @app.api_route("/api/flights", methods=["GET", "HEAD"])
-    def flights_search(origin: str, destination: str, date: str, passengers: int = 1):
+    def flights_search(conn: DbConnection, origin: str, destination: str, date: str, passengers: int = 1):
         if passengers < 1:
             return JSONResponse(status_code=400, content={
                 "code": "validation_error",
@@ -136,7 +145,7 @@ def create_app() -> FastAPI:
         return [serialize_flight(row) for row in rows]
 
     @app.api_route("/api/flights/{flight_id}", methods=["GET", "HEAD"])
-    def flight_by_id(flight_id: str):
+    def flight_by_id(conn: DbConnection, flight_id: str):
         try:
             flight_id_int = int(flight_id)
         except ValueError:
@@ -156,7 +165,7 @@ def create_app() -> FastAPI:
         return serialize_flight(row)
 
     @app.post("/api/bookings")
-    def book(request: CreateBookingRequest):
+    def book(conn: DbConnection, request: CreateBookingRequest):
         if not request.passengers:
                     return JSONResponse(status_code=400, content={
                         "code": "validation_error",
@@ -182,7 +191,7 @@ def create_app() -> FastAPI:
 
 
     @app.api_route("/api/bookings/{code}", methods=["GET", "HEAD"])
-    def get_booking(code: str, lastName: str | None = None):
+    def get_booking(conn: DbConnection, code: str, lastName: str | None = None):
         if not lastName:
             return JSONResponse(status_code=404, content={
                 'code': 'not_found',
@@ -211,7 +220,7 @@ def create_app() -> FastAPI:
 
 
     @app.post("/api/bookings/{code}/cancel")
-    def cancel_booking_endpoint(code: str, request: CancelBookingRequest):
+    def cancel_booking_endpoint(conn: DbConnection, code: str, request: CancelBookingRequest):
         if not request.lastName:
             return JSONResponse(status_code=404, content={
                 "code": "not_found",
