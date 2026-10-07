@@ -58,10 +58,22 @@ def seed_flights():
     try:
         with conn.cursor() as cur:
             today = datetime.now(MOSCOW).date()
+            
+            cur.execute("SELECT MAX(departureAt) FROM flights")
+            result = cur.fetchone()
+            last_departure_utc = result[0] if result[0] else None
+            
+            if last_departure_utc:
+                last_flight_date = last_departure_utc.astimezone(MOSCOW).date()
+                days_difference = (last_flight_date - today).days
+                start_offset = max(0, days_difference + 1)
+            else:
+                start_offset = 0
+            
             rows = []
             count = 0
 
-            for day_offset in range(30):
+            for day_offset in range(start_offset, 30):
                 current_date = today + timedelta(days=day_offset)
 
                 for from_city in CITY_CODES:
