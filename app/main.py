@@ -8,7 +8,7 @@ from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse
 from psycopg.errors import UniqueViolation
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 from .db import get_connection
 from .serializers import serialize_booking, serialize_flight
@@ -31,6 +31,15 @@ class PassengerRequest(BaseModel):
     lastName: str
     dateOfBirth: str
     documentNumber: str
+    
+    @field_validator('dateOfBirth')
+    @classmethod
+    def validate_date_of_birth(cls, v: str) -> str:
+        try:
+            datetime.strptime(v, '%Y-%m-%d')
+        except ValueError:
+            raise ValueError('Invalid date format, expected YYYY-MM-DD')
+        return v
 
 class CreateBookingRequest(BaseModel):
     flightId: str
