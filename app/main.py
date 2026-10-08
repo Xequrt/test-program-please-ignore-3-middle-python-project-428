@@ -1,6 +1,6 @@
 import random
 import string
-from datetime import UTC, datetime, timedelta, date
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from typing import Annotated
 from zoneinfo import ZoneInfo
@@ -10,7 +10,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse
 from psycopg import Connection
 from psycopg.errors import UniqueViolation
-from pydantic import BaseModel, Field, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 
 from .db import get_connection
 from .serializers import serialize_booking, serialize_flight
