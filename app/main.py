@@ -1,6 +1,6 @@
 import random
 import string
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime, timedelta, date
 from pathlib import Path
 from typing import Annotated
 from zoneinfo import ZoneInfo
@@ -10,7 +10,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse
 from psycopg import Connection
 from psycopg.errors import UniqueViolation
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, EmailStr
 
 from .db import get_connection
 from .serializers import serialize_booking, serialize_flight
@@ -33,31 +33,22 @@ DbConnection = Annotated[Connection, Depends(get_db)]
 
 
 class ContactRequest(BaseModel):
-    email: str
-    phone: str
+    email: EmailStr
+    phone: str = Field(min_length=1)
 
 class PassengerRequest(BaseModel):
-    firstName: str
-    lastName: str
-    dateOfBirth: str
-    documentNumber: str
+    firstName: str = Field(min_length=1)
+    lastName: str = Field(min_length=1)
+    dateOfBirth: date
+    documentNumber: str = Field(min_length=1)
     
-    @field_validator('dateOfBirth')
-    @classmethod
-    def validate_date_of_birth(cls, v: str) -> str:
-        try:
-            datetime.strptime(v, '%Y-%m-%d')  # noqa: DTZ007
-        except ValueError:
-            raise ValueError('Invalid date format, expected YYYY-MM-DD')
-        return v
-
 class CreateBookingRequest(BaseModel):
-    flightId: str
+    flightId: str = Field(min_length=1)
     contact: ContactRequest
     passengers: list[PassengerRequest]
 
 class CancelBookingRequest(BaseModel):
-    lastName: str
+    lastName: str = Field(min_length=1)
 
 def generate_booking_code():
     alphabet = "".join(c for c in string.ascii_uppercase + string.digits if c not in "0O1I")
@@ -76,7 +67,7 @@ def get_booking_with_details(conn, code: str, lastName: str):
         PassengerRequest(
             firstName=p["firstname"],
             lastName=p["lastname"],
-            dateOfBirth=p["birthday"].strftime("%Y-%m-%d"),
+            dateOfBirth=p["birthday"],
             documentNumber=p["passportnumber"]
         ) for p in passengers_rows
     ]

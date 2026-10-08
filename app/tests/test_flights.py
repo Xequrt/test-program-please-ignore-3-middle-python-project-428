@@ -297,8 +297,8 @@ def test_cancel_booking_twice():
 
 def test_cancel_booking_missing_lastname():
     r = client.post("/api/bookings/ABC123/cancel", json={"lastName": ""})
-    assert r.status_code == 404
-    assert r.json()["code"] == "not_found"
+    assert r.status_code == 400
+    assert r.json()["code"] == "validation_error"
 
 
 def test_cancel_booking_wrong_lastname():

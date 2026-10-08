@@ -31,8 +31,8 @@ def serialize_booking(booking_code, status, flight_row, passengers, contact, tot
         "code": booking_code,
         "status": status,
         "flight": serialize_flight(flight_row),
-        "passengers": [p.model_dump() for p in passengers],
-        "contact": contact.model_dump(),
+        "passengers": [p.model_dump(mode='json') for p in passengers],
+        "contact": contact.model_dump(mode='json'),
         "totalPrice": {
             "amount": total_price,
             "currency": "RUB"
