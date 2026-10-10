@@ -1,30 +1,64 @@
 from fastapi.testclient import TestClient
+from datetime import datetime, timedelta
+import pytest
 
 from app.main import create_app
 
 client = TestClient(create_app())
 
+today = datetime.now().strftime("%Y-%m-%d")
+
+@pytest.fixture
+def get_flight_id():
+    r = client.get("/api/flights", params={
+        "origin": "MOW", "destination": "LED", "date": today
+    })
+    data = r.json()
+    assert len(data) > 0
+    return data[0]["id"]
 
 def test_search_success():
     r = client.get("/api/flights", params={
-        "origin": "MOW", "destination": "LED", "date": "2026-09-17"
+        "origin": "MOW", "destination": "LED", "date": today
     })
     assert r.status_code == 200
     data = r.json()
     assert isinstance(data, list)
-    if data:
-        f = data[0]
-        assert "id" in f
-        assert isinstance(f["origin"], dict)
-        assert "code" in f["origin"]
+    assert len(data) > 0
+
+    f = data[0]
+    assert "id" in f
+    assert isinstance(f["origin"], dict)
+    assert "code" in f["origin"]
 
 
 def test_search_empty():
     r = client.get("/api/flights", params={
-        "origin": "MOW", "destination": "MOW", "date": "2026-09-17"
+        "origin": "MOW", "destination": "MOW", "date": today
     })
     assert r.status_code == 200
     assert r.json() == []
+
+
+def test_cities_order():
+    r = client.get("/api/cities")
+    assert r.status_code == 200
+    data = r.json()
+    assert isinstance(data, list)
+    
+    assert data[0]["code"] == "MOW"
+    assert data[1]["code"] == "LED"
+
+
+def test_unknown_api_returns_json():
+    r = client.get("/api/NOPE")
+    assert r.status_code == 404
+    assert r.json()["code"] == "not_found"
+
+
+def test_head_request():
+    r = client.head("/api/health")
+    assert r.status_code == 200
 
 
 def test_search_missing_date():
@@ -52,11 +86,11 @@ def test_search_zero_passengers():
     assert r.json()["code"] == "validation_error"
 
 
-def test_flight_by_id():
-    r = client.get("/api/flights/1")
+def test_flight_by_id(get_flight_id):
+    r = client.get(f"/api/flights/{get_flight_id}")
     assert r.status_code == 200
     f = r.json()
-    assert f["id"] == 1
+    assert f["id"] == get_flight_id
     assert isinstance(f["origin"], dict)
 
 
@@ -72,9 +106,9 @@ def test_flight_by_id_not_a_number():
     assert r.json()["code"] == "not_found"
 
 
-def test_create_booking_success():
+def test_create_booking_success(get_flight_id):
     r = client.post("/api/bookings", json={
-        "flightId": "1",
+        "flightId": str(get_flight_id),
         "contact": {
             "email": "test@example.com",
             "phone": "+79991234567"
@@ -99,14 +133,14 @@ def test_create_booking_success():
     assert len(data["passengers"]) == 1
 
 
-def test_create_booking_two_passengers():
-    flight_r = client.get("/api/flights/1")
+def test_create_booking_two_passengers(get_flight_id):
+    flight_r = client.get(f"/api/flights/{get_flight_id}")
     assert flight_r.status_code == 200
     flight = flight_r.json()
     single_price = flight["price"]["amount"]
     
     r = client.post("/api/bookings", json={
-        "flightId": "1",
+        "flightId": str(get_flight_id),
         "contact": {
             "email": "test@example.com",
             "phone": "+79991234567"
@@ -132,9 +166,9 @@ def test_create_booking_two_passengers():
     assert len(data["passengers"]) == 2
 
 
-def test_create_booking_empty_passengers():
+def test_create_booking_empty_passengers(get_flight_id):
     r = client.post("/api/bookings", json={
-        "flightId": "1",
+        "flightId": str(get_flight_id),
         "contact": {
             "email": "test@example.com",
             "phone": "+79991234567"
@@ -146,9 +180,9 @@ def test_create_booking_empty_passengers():
     assert data["code"] == "validation_error"
 
 
-def test_create_booking_missing_field():
+def test_create_booking_missing_field(get_flight_id):
     r = client.post("/api/bookings", json={
-        "flightId": "1",
+        "flightId": str(get_flight_id),
         "contact": {
             "email": "test@example.com",
             "phone": "+79991234567"
@@ -180,9 +214,9 @@ def test_create_booking_unknown_flight():
     assert data["code"] == "not_found"
 
 
-def test_create_booking_minimal_document():
+def test_create_booking_minimal_document(get_flight_id):
     r = client.post("/api/bookings", json={
-        "flightId": "1",
+        "flightId": str(get_flight_id),
         "contact": {
             "email": "a@b.c",
             "phone": "1"
@@ -199,9 +233,9 @@ def test_create_booking_minimal_document():
     assert r.status_code == 201
 
 
-def test_view_booking_success():
+def test_view_booking_success(get_flight_id):
     create_r = client.post("/api/bookings", json={
-        "flightId": "1",
+        "flightId": str(get_flight_id),
         "contact": {"email": "test@example.com", "phone": "+79991234567"},
         "passengers": [
             {"firstName": "Иван", "lastName": "Петров", "dateOfBirth": "1990-05-20", "documentNumber": "1"}
@@ -217,9 +251,9 @@ def test_view_booking_success():
     assert data["status"] == "confirmed"
 
 
-def test_view_booking_case_insensitive():
+def test_view_booking_case_insensitive(get_flight_id):
     create_r = client.post("/api/bookings", json={
-        "flightId": "1",
+        "flightId": str(get_flight_id),
         "contact": {"email": "test@example.com", "phone": "+79991234567"},
         "passengers": [
             {"firstName": "Мария", "lastName": "Иванова", "dateOfBirth": "1992-03-15", "documentNumber": "2"}
@@ -235,9 +269,9 @@ def test_view_booking_case_insensitive():
     assert r.status_code == 200
 
 
-def test_view_booking_wrong_lastname():
+def test_view_booking_wrong_lastname(get_flight_id):
     create_r = client.post("/api/bookings", json={
-        "flightId": "1",
+        "flightId": str(get_flight_id),
         "contact": {"email": "test@example.com", "phone": "+79991234567"},
         "passengers": [
             {"firstName": "Пётр", "lastName": "Сидоров", "dateOfBirth": "1985-07-10", "documentNumber": "3"}
@@ -257,9 +291,9 @@ def test_view_booking_missing_lastname():
     assert r.json()["code"] == "not_found"
 
 
-def test_cancel_booking_success():
+def test_cancel_booking_success(get_flight_id):
     create_r = client.post("/api/bookings", json={
-        "flightId": "1",
+        "flightId": str(get_flight_id),
         "contact": {"email": "test@example.com", "phone": "+79991234567"},
         "passengers": [
             {"firstName": "Анна", "lastName": "Кузнецова", "dateOfBirth": "1995-11-25", "documentNumber": "4"}
@@ -275,9 +309,9 @@ def test_cancel_booking_success():
     assert data["status"] == "cancelled"
 
 
-def test_cancel_booking_twice():
+def test_cancel_booking_twice(get_flight_id):
     create_r = client.post("/api/bookings", json={
-        "flightId": "1",
+        "flightId": str(get_flight_id),
         "contact": {"email": "test@example.com", "phone": "+79991234567"},
         "passengers": [
             {"firstName": "Олег", "lastName": "Смирнов", "dateOfBirth": "1988-02-14", "documentNumber": "5"}
@@ -301,9 +335,9 @@ def test_cancel_booking_missing_lastname():
     assert r.json()["code"] == "validation_error"
 
 
-def test_cancel_booking_wrong_lastname():
+def test_cancel_booking_wrong_lastname(get_flight_id):
     create_r = client.post("/api/bookings", json={
-        "flightId": "1",
+        "flightId": str(get_flight_id),
         "contact": {"email": "test@example.com", "phone": "+79991234567"},
         "passengers": [
             {"firstName": "Елена", "lastName": "Волкова", "dateOfBirth": "1993-09-05", "documentNumber": "6"}
