@@ -1,12 +1,13 @@
-from fastapi.testclient import TestClient
-from datetime import datetime, timedelta
+from datetime import UTC, datetime
+
 import pytest
+from fastapi.testclient import TestClient
 
 from app.main import create_app
 
 client = TestClient(create_app())
 
-today = datetime.now().strftime("%Y-%m-%d")
+today = datetime.now(UTC).strftime("%Y-%m-%d")
 
 @pytest.fixture
 def get_flight_id():
