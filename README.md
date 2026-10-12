@@ -4,7 +4,7 @@
 
 REST API сервиса бронирования авиабилетов с поиском рейсов, оформлением, просмотром и отменой брони. Данные хранятся в PostgreSQL, фронтенд предоставляется Hexlet в виде готового npm-пакета.
 
-**🌐 Демо:** https://test-program-please-ignore-3-middle-2wad.onrender.com
+**🌐 Демо:** https://test-program-please-ignore-3-middle-42zq.onrender.com
 
 Учебный проект Хекслета: https://ru.hexlet.io/programs/test-program-please-ignore-3-middle-python
 
@@ -198,10 +198,6 @@ npx tsp compile contract
 ## CI/CD
 
 GitHub Actions автоматически запускает тесты на каждый push. Конфигурация: `.github/workflows/hexlet-check.yml`
-
-## Деплой
-
-Приложение развёрнуто на Render: https://test-program-please-ignore-3-middle-42zq.onrender.com/
 
 ---
 
