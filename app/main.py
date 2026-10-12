@@ -13,7 +13,7 @@ from psycopg.errors import UniqueViolation
 from pydantic import BaseModel, EmailStr, Field
 
 from .db import get_connection
-from .serializers import serialize_booking, serialize_flight
+from .serializers import serialize_booking, serialize_cities, serialize_flight
 from .sql import (
     cancel_booking,
     create_booking,
@@ -21,6 +21,9 @@ from .sql import (
     get_flight_by_id,
     get_flights,
     get_passengers_by_booking_id,
+)
+from .sql import (
+    get_cities as get_cities_sql,
 )
 
 
@@ -101,13 +104,14 @@ def create_app() -> FastAPI:
 
     @app.api_route("/api/cities", methods=["GET", "HEAD"])
     def get_cities(conn: DbConnection):
-        with conn.cursor() as cur:
-            cur.execute("SELECT code, name, country FROM cities")
-            rows = cur.fetchall()
-        return [
-            {"code": row[0], "name": row[1], "country": row[2]}
-            for row in rows
-        ]
+        rows = get_cities_sql(conn)
+        if rows is None:
+            return JSONResponse(status_code=404, content={
+                "code": "not_found",
+                "message": "Cities is not found"
+            })
+        
+        return [serialize_cities(row) for row in rows]
 
     @app.api_route("/api/flights", methods=["GET", "HEAD"])
     def flights_search(conn: DbConnection, origin: str, destination: str, date: str, passengers: int = 1):

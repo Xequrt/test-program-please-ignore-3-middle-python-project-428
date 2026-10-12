@@ -1,3 +1,6 @@
+def serialize_cities(row):
+     return {"code": row[0], "name": row[1], "country": row[2]}
+
 def serialize_flight(row):
     return {
         "id": row["id"],

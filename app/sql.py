@@ -1,6 +1,22 @@
 from psycopg.rows import dict_row
 
 
+def get_cities(conn):
+    sql = """
+            SELECT code, name, country 
+            FROM cities 
+            ORDER BY
+                CASE
+                    WHEN code = 'MOW' THEN 1
+                    WHEN code = 'LED' THEN 2
+                    ELSE 3
+                END,
+                code
+        """
+    with conn.cursor() as cur:
+            cur.execute(sql)
+            return cur.fetchall()
+
 def get_flights(conn, origin, destination, start_utc, end_utc, passengers):
     sql = """
         SELECT 
